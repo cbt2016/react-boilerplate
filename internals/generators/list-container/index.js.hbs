@@ -1,0 +1,45 @@
+import React from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import reduce from 'lodash/reduce';
+import actions from './actions';
+import selectMatch from './selectors';
+import styles from './styles.css';
+import { {{ camelCase type}}ListPropTypes } from 'redux-immutable-crud';
+
+export class Match extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  static propTypes = {{ camelCase type}}ListPropTypes;
+
+  state = {
+    query: '',
+    isSearching: false,
+  };
+
+  componentDidMount() {
+    this.props.loadEntities();
+  }
+
+  render() {
+    const { entities } = this.props;
+    return (
+      <div className={styles.match}>
+        {reduce(entities, (acc, item, idx) => (
+          [
+            ...acc,
+            (<div key={idx}>
+              {item._id}
+            </div>),
+          ]
+        ), [])}
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = selectMatch();
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(actions, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Match);

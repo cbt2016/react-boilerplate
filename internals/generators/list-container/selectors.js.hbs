@@ -1,0 +1,21 @@
+import { createSelector } from 'reselect';
+import pick from 'lodash/pick';
+import { moduleName } from './constants';
+
+const selectModule = () => state => state.get(moduleName);
+
+const selectState = () => createSelector(
+  selectModule(),
+  (substate) => substate.toJS()
+);
+
+const selectSelected = (fields) => createSelector(
+  selectModule(),
+  (substate) => (Array.isArray(fields) ? pick(substate.get('selected'), fields) : substate.get('selected'))
+);
+
+export default selectState;
+export {
+  selectModule,
+  selectSelected,
+};

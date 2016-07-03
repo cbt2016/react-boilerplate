@@ -7,11 +7,13 @@
 const fs = require('fs');
 const componentGenerator = require('./component/index.js');
 const containerGenerator = require('./container/index.js');
+const listContainerGenerator = require('./list-container/index.js');
 const routeGenerator = require('./route/index.js');
 
 module.exports = (plop) => {
   plop.setGenerator('component', componentGenerator);
   plop.setGenerator('container', containerGenerator);
+  plop.setGenerator('list-container', listContainerGenerator);
   plop.setGenerator('route', routeGenerator);
   plop.addHelper('directory', (comp) => {
     try {

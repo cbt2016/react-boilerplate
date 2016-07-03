@@ -1,0 +1,9 @@
+import { create{{ properCase type}}Constants } from 'redux-immutable-crud';
+
+export const moduleName = '{{ camelCase name }}';
+export const endpoint = '{{ endpoint }}';
+export const listProjection = null;
+export const detailProjection = null;
+
+const defaultConstants = create{{ properCase type}}Constants(moduleName, { keyField: '{{ keyField }}' });
+export default defaultConstants;

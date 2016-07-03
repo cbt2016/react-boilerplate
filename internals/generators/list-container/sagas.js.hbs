@@ -1,0 +1,16 @@
+import constants, { endpoint, listProjection, detailProjection } from './constants';
+import { create{{ properCase type}}Sagas } from 'redux-immutable-crud';
+import selectState from './selectors';
+import actions from './actions';
+
+const defaultSagas = create{{ properCase type}}Sagas({
+  actions,
+  constants,
+  endpoint,
+  selectState,
+  listProjection,
+  detailProjection,
+}).list;
+
+export default defaultSagas;
+
