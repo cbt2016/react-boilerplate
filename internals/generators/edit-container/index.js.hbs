@@ -1,0 +1,52 @@
+import React from 'react';
+import { connect } from 'react-redux';
+import { Field, reduxForm } from 'redux-form/immutable';
+import {
+  Button,
+  Form,
+} from 'elemental';
+import createInputField from 'utils/createInputField';
+import { createSelector } from 'reselect';
+import { selectSelected } from '../{{ properCase name }}/selectors';
+
+{{#each fields}}
+const {{this}}Field = createInputField({ label: '{{this}}', type: 'input' });
+{{/each}}
+
+export class {{ properCase name }}Edit extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  static propTypes = {
+    pristine: React.PropTypes.bool.isRequired,
+    submitting: React.PropTypes.bool.isRequired,
+    handleSubmit: React.PropTypes.func.isRequired,
+    reset: React.PropTypes.func.isRequired,
+    submit: React.PropTypes.func.isRequired,
+    cancel: React.PropTypes.func.isRequired,
+  };
+
+  render() {
+    const { handleSubmit, pristine, reset, submitting, submit, cancel } = this.props;
+
+    return (
+      <Form>
+        {{#each fields}}
+        <Field name="{{this}}" component={{curly open}}{{this}}Field} />
+        {{/each}}
+        <div>
+          <Button type="primary" disabled={submitting} onClick={handleSubmit(submit)}>Submit</Button>
+          <Button disabled={pristine || submitting} onClick={reset}>Reset</Button>
+          <Button onClick={cancel}>Cancel</Button>
+        </div>
+      </Form>
+    );
+  }
+}
+
+const {{ properCase name }}EditForm = reduxForm({
+  form: '{{ properCase name }}Edit',
+})({{ properCase name }}Edit);
+
+export default connect(createSelector(
+  selectSelected(['_id'{{#each fields}}, '{{this}}'{{/each}}]), (selected) => ({
+    initialValues: selected,
+  })
+))({{ properCase name }}EditForm);
