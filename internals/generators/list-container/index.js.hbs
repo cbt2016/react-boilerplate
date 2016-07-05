@@ -1,45 +1,219 @@
-import React from 'react';
-import { connect } from 'react-redux';
+import React, { Component } from 'react';
+import {
+  Glyph,
+  Button,
+  Form,
+  FormField,
+  FormInput,
+  FormSelect,
+  InputGroup,
+} from 'elemental';
 import { bindActionCreators } from 'redux';
-import reduce from 'lodash/reduce';
+import { connect } from 'react-redux';
+import moment from 'moment';
+// import { replace } from 'react-router-redux';
+import qs from 'qs';
+import { StickyContainer, Sticky } from 'react-sticky';
+import TableView from 'components/TableView';
+import Modal from 'components/Modal';
+import LoadMore from 'components/LoadMore';
+import ConfirmRemoveModal from 'components/ConfirmRemoveModal';
+import FilterGuideModal from 'components/FilterGuideModal';
+import { editableListPropTypes } from 'redux-immutable-crud';
+import {{ properCase name }}Edit from '../{{ properCase name }}Edit';
+import selectState from './selectors';
 import actions from './actions';
-import selectMatch from './selectors';
 import styles from './styles.css';
-import { {{ camelCase type}}ListPropTypes } from 'redux-immutable-crud';
 
-export class Match extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  static propTypes = {{ camelCase type}}ListPropTypes;
+const Section = InputGroup.Section; // Cause MemberExpression error when using InputGroup.Section in JSX
 
-  state = {
-    query: '',
-    isSearching: false,
-  };
+export class {{ properCase name }} extends Component { // eslint-disable-line react/prefer-stateless-function
+  static propTypes = editableListPropTypes;
 
   componentDidMount() {
-    this.props.loadEntities();
+    const { page, limit, projection, sort, ...filter } = this.props.location.query;
+    const filterString = qs.stringify(filter);
+    this.props.changeFilterString(filterString);
+    this.props.loadEntities({ page, limit, projection, sort, filter });
   }
 
+  componentWillReceiveProps() {
+    // Try this without success
+    // if (this.props.filterString !== filterString) {
+    //   this.props.dispatch(replace({
+    //     pathname: this.props.location.pathname,
+    //     query: this.flattenQuery(this.props.query),
+    //   }));
+    // }
+  }
+
+  fields = [
+    {{#each fields}}
+    {
+      name: '{{ camelCase this }}',
+      header: '{{ properCase this }}',
+      width: 0,
+    },
+    {{/each}}
+  ];
+
+  handleSelectWebsite = (website) => {
+    this.handleLoadEntities({ website });
+  };
+
+  handleKeyDown = (e) => {
+    if (e.keyCode === 13) {
+      this.handleLoadEntities();
+    }
+  };
+
+  handleLoadEntities = (filter = {}) => {
+    const nextFilter = {
+      ...qs.parse(this.props.filterString),
+      ...filter,
+    };
+
+    // Don't reload if not have website, reset old filter
+    if (!nextFilter.website) {
+      this.props.changeFilterString(qs.stringify(this.props.query.filter));
+      return;
+    }
+    const query = { ...this.props.query, page: 1, filter: nextFilter };
+    this.props.loadEntities(query);
+
+    // Update queryString
+    const filterString = qs.stringify(nextFilter);
+    this.props.changeFilterString(filterString);
+
+    // Update url
+    // TODO When enable this, LOAD_ENTITIES_SUCCESS will be duplicated
+    // this.props.dispatch(push({
+    //   pathname: this.props.location.pathname,
+    //   query: this.flattenQuery(query),
+    // }));
+  };
+
+  submit = (obj) => {
+    this.props.submitEdit(obj.toJS());
+  };
+
+  handleEdit = (id) => {
+    this.props.edit(id);
+    this.props.loadDetail(id);
+  };
+
   render() {
-    const { entities } = this.props;
+    const websites = [
+      { label: 'fitwomen.org', value: 'fitwomen.org' },
+      { label: 'dailyskinremedy.com', value: 'dailyskinremedy.com' },
+      { label: 'youdecideyourhealth.com', value: 'youdecideyourhealth.com' },
+    ];
+
+    const {
+      entities, count, remove,
+      isLoadingMore, hasMore, query, loadMore,
+      selected, submitRemove, cancelRemove,
+    } = this.props;
+
+    const style = { background: 'white', zIndex: 101 };
+    const stickyStyle = { top: 50 };
+    const headerStyle = { padding: 15, borderBottom: '1px solid' };
+
     return (
-      <div className={styles.match}>
-        {reduce(entities, (acc, item, idx) => (
-          [
-            ...acc,
-            (<div key={idx}>
-              {item._id}
-            </div>),
-          ]
-        ), [])}
-      </div>
+      <StickyContainer className={styles.{{ camelCase name }}{{ curly }}>
+        <Sticky style={style} stickyStyle={stickyStyle}>
+          <header style={headerStyle}>
+            <Form onSubmit={(e) => e.preventDefault()}>
+              <FormField label="Website" htmlFor="inline-form-input-email">
+                <FormSelect
+                  options={websites}
+                  firstOption="Select"
+                  onChange={this.handleSelectWebsite}
+                  value={query.filter && query.filter.website}
+                />
+              </FormField>
+              {query.filter && query.filter.website && (
+                <InputGroup grow>
+                  <Section contiguous grow>
+                    <FormInput
+                      type="text" placeholder="Search..."
+                      value={this.props.filterString}
+                      onChange={(e) => this.props.changeFilterString(e.target.value)}
+                      onKeyDown={this.handleKeyDown}
+                    />
+                  </Section>
+                  <Section>
+                    <Button onClick={() => this.props.showFilterGuide()}>
+                      <Glyph icon="info" />
+                    </Button>
+                  </Section>
+                  <Section>
+                    <Button onClick={() => this.handleLoadEntities()}>
+                      <Glyph icon="sync" />
+                    </Button>
+                  </Section>
+                  <Section>
+                    <Button
+                      type="primary"
+                      onClick={() => this.props.create({ website: query.filter.website })}
+                    >
+                      <Glyph icon="plus" />
+                    </Button>
+                  </Section>
+                </InputGroup>
+              )}
+            </Form>
+            <div>
+              Total: {count} - Page: {query.page} - Paging: {query.limit} - Has More: {hasMore ? 'yes' : 'no'}
+            </div>
+          </header>
+        </Sticky>
+        <TableView
+          fields={this.fields}
+          entities={entities}
+          edit={this.handleEdit}
+          remove={remove}
+        />
+        <LoadMore
+          isLoadingMore={isLoadingMore}
+          hasMore={hasMore}
+          query={query}
+          loadMore={loadMore}
+        />
+        {this.props.isEdit && this.props.selected && (
+          <Modal
+            isOpen={this.props.isShowDetail}
+            onClose={() => this.props.closeDetail()}
+          >
+            <{{ properCase name }}Edit cancel={() => this.props.cancelEdit()} submit={this.submit} />
+          </Modal>
+        )}
+        {this.props.isRemove && this.props.selected && (
+          <ConfirmRemoveModal
+            message={<span>Are you sure to remove <b>{selected.title}</b>?</span>}
+            selected={selected}
+            submitRemove={submitRemove}
+            cancelRemove={cancelRemove}
+          />
+        )}
+        {this.props.isShowFilterGuide && (
+          <FilterGuideModal
+            filterFields={this.props.filterFields}
+            closeFilterGuide={this.props.closeFilterGuide}
+          />
+        )}
+      </StickyContainer>
     );
   }
 }
 
-const mapStateToProps = selectMatch();
+const mapStateToProps = selectState();
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators(actions, dispatch);
+  return {
+    ...bindActionCreators(actions, dispatch),
+    dispatch,
+  };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Match);
+export default connect(mapStateToProps, mapDispatchToProps)({{ properCase name }});

@@ -31,6 +31,12 @@ module.exports = {
     default: 'query',
   }, {
     type: 'input',
+    name: 'fields',
+    message: 'Fields?',
+    default: '',
+    filter: (fields) => fields.split(/,/gi).map(item => item.trim()),
+  }, {
+    type: 'input',
     name: 'keyField',
     message: 'Your key field?',
     default: '_id',

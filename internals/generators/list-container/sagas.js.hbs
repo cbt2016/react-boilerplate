@@ -7,7 +7,7 @@ const defaultSagas = create{{ properCase type}}Sagas({
   actions,
   constants,
   endpoint,
-  selectState,
+  selectState: selectState(),
   listProjection,
   detailProjection,
 }).list;
